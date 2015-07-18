@@ -648,6 +648,7 @@ BOOL HashSequences(int fragSize, BOOL loadOnly)
          {
             fprintf(stderr,"W002: Too many Xs in sequence %s\n", 
                     gdbm_seq_seqid.dptr);
+            DropSequence(gdbm_seq_seqid.dptr);
          }
          else
          {
