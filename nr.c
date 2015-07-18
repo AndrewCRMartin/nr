@@ -701,7 +701,9 @@ void StoreSequenceFragment(char *data,
    static char *sFragment=NULL;
    int         maxoffset,
                offset;
-   BOOL        done     = FALSE;
+   BOOL        done     = FALSE,
+               gotX     = FALSE,
+               gotNoX   = FALSE;
    datum       gdbm_frag_key,
                gdbm_seq_seqdata;
 
