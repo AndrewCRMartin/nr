@@ -1,0 +1,9 @@
+W001: Duplicate ID
+W002: Too many Xs in sequence
+W003: Can't find unique fragment
+E001: Can't write file
+E002: Can't open GDBM hash for r/w
+E003: No memory for fragment storage
+E004: Can't read file
+E005: Failed to read sequences from file
+
