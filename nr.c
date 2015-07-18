@@ -515,7 +515,7 @@ BOOL ReadSequences(FILE *in, char *file, int rejectSize)
                TERMINATE(key);
                fprintf(stderr,"INFO: Sequence %s rejected. Only %d \
 residues\n",
-                       key, strlen(sequence));
+                       key, strlen(sptr));
             }
             
             free(sequence);
