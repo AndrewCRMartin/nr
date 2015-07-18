@@ -104,7 +104,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <gdbm.h>
-#include <signal.h>
 #include <sys/types.h>
 #include "bioplib/SysDefs.h"
 #include "bioplib/general.h"
@@ -145,7 +144,7 @@ do                                                                       \
    if((ch_hash = gdbm_open(name, BLOCK_SIZE,                             \
                             GDBM_WRCREAT|GDBM_FAST,                      \
                             MODE, NULL))==NULL)                          \
-   {  fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n",         \
+   {  fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n",         \
               name);                                                     \
       return(FALSE);                                                     \
    }                                                                     \
@@ -192,7 +191,6 @@ void WriteResults(FILE *out);
 char *ThisSequenceRedundant(char *data, int fragSize,
                             datum gdbm_seq_seqid);
 BOOL TooManyXs(char *seq);
-void CleanupDie(int signum);
 
 
 /************************************************************************/
@@ -224,9 +222,7 @@ int main(int argc, char **argv)
       strncpy(gGDBMDir, cptr, MAXBUFF);
       gGDBMDir[MAXBUFF-1] = '\0';
    }
-
-   /* Install signal handler to catch CTRL-C                            */
-   signal((int)SIGINT, CleanupDie);
+   
    
    if(ParseCmdLine(argc, argv, outfile, &FirstIsNR, &fragSize, 
                    &firstFile, &rejectSize))
@@ -238,7 +234,7 @@ int main(int argc, char **argv)
          {
             if((out=fopen(outfile,"w"))==NULL)
             {
-               fprintf(stderr,"E001: Can't write %s\n", outfile);
+               fprintf(stderr,"nr: (E001) Can't write %s\n", outfile);
                return(1);
             }
          }
@@ -366,7 +362,7 @@ BOOL CreateHashes(void)
                                 GDBM_WRCREAT|GDBM_FAST, 
                                 MODE, NULL))==NULL)
    {
-      fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n", name);
+      fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n", name);
       return(FALSE);
    }
    
@@ -375,7 +371,7 @@ BOOL CreateHashes(void)
                                      GDBM_WRCREAT|GDBM_FAST, 
                                      MODE, NULL))==NULL)
    {
-      fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n", name);
+      fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n", name);
       return(FALSE);
    }
    
@@ -384,7 +380,7 @@ BOOL CreateHashes(void)
                                  GDBM_WRCREAT|GDBM_FAST,
                                  MODE, NULL))==NULL)
    {
-      fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n", 
+      fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n", 
               name);
       return(FALSE);
    }
@@ -394,7 +390,7 @@ BOOL CreateHashes(void)
                                  GDBM_WRCREAT|GDBM_FAST,
                                  MODE, NULL))==NULL)
    {
-      fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n", 
+      fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n", 
               name);
       return(FALSE);
    }
@@ -404,7 +400,7 @@ BOOL CreateHashes(void)
                                  GDBM_WRCREAT|GDBM_FAST,
                                  MODE, NULL))==NULL)
    {
-      fprintf(stderr,"E002: Can't open GDBM hash for r/w: %s\n", 
+      fprintf(stderr,"E00n: Can't open GDBM hash for r/w: %s\n", 
               name);
       return(FALSE);
    }
@@ -477,7 +473,7 @@ BOOL ReadSequences(FILE *in, char *file, int rejectSize)
    
    if(gVerbose > 1)
    {
-      fprintf(stderr,"TRACE: Reading Sequences...\n");
+      fprintf(stderr,"Reading Sequences...\n");
    }
    
    /* Read through the FASTA input file using a GDBM hash to store the
@@ -510,7 +506,7 @@ BOOL ReadSequences(FILE *in, char *file, int rejectSize)
                if(gdbm_store(gDBF_seqdata_temp, gdbm_seq_seqid, 
                              gdbm_seq_seqdata, GDBM_INSERT))
                {
-                  fprintf(stderr,"W001: Duplicate ID: %s\n", 
+                  fprintf(stderr,"Warning (W001): Duplicate ID: %s\n", 
                           key);
                }
             }
@@ -519,7 +515,7 @@ BOOL ReadSequences(FILE *in, char *file, int rejectSize)
                TERMINATE(key);
                fprintf(stderr,"INFO: Sequence %s rejected. Only %d \
 residues\n",
-                       key, strlen(sptr));
+                       key, strlen(sequence));
             }
             
             free(sequence);
@@ -601,7 +597,7 @@ residues\n",
       }
       else if(gVerbose)
       {
-         fprintf(stderr,"INFO: Sequence %s rejected. Only %d residues\n",
+         fprintf(stderr,"Sequence %s rejected. Only %d residues\n",
                  key, strlen(sequence));
       }
       free(sequence);
@@ -634,7 +630,7 @@ BOOL HashSequences(int fragSize, BOOL loadOnly)
    
    if(gVerbose > 1)
    {
-      fprintf(stderr,"TRACE: Hashing Sequence Fragments...\n");
+      fprintf(stderr,"Hashing Sequence Fragments...\n");
    }
    
    gdbm_seq_seqid = gdbm_firstkey(gDBF_seqdata_temp);
@@ -646,9 +642,8 @@ BOOL HashSequences(int fragSize, BOOL loadOnly)
       {
          if(TooManyXs(data))
          {
-            fprintf(stderr,"W002: Too many Xs in sequence %s\n", 
+            fprintf(stderr,"W00n: Too many Xs in sequence %s\n", 
                     gdbm_seq_seqid.dptr);
-            DropSequence(gdbm_seq_seqid.dptr);
          }
          else
          {
@@ -706,7 +701,9 @@ void StoreSequenceFragment(char *data,
    static char *sFragment=NULL;
    int         maxoffset,
                offset;
-   BOOL        done     = FALSE;
+   BOOL        done     = FALSE,
+               gotX     = FALSE,
+               gotNoX   = FALSE;
    datum       gdbm_frag_key,
                gdbm_seq_seqdata;
 
@@ -716,7 +713,7 @@ void StoreSequenceFragment(char *data,
       /* Allocate memory for fragment storage                           */
       if((sFragment = (char *)malloc((fragSize+1) * sizeof(char)))==NULL)
       {
-         fprintf(stderr,"E003: No memory for fragment storage\n");
+         fprintf(stderr,"E00n: No memory for fragment storage\n");
          exit(1);
       }
    }
@@ -752,7 +749,7 @@ void StoreSequenceFragment(char *data,
    {
       if(loadOnly)
       {
-         fprintf(stderr,"W003: Can't find unique fragment. Unable to \
+         fprintf(stderr,"W00n: Can't find unique fragment. Unable to \
 store %s (length=%d)\n", gdbm_seq_seqid.dptr, strlen(data));
          if(gVerbose > 2)
          {
@@ -790,7 +787,7 @@ store %s (length=%d)\n", gdbm_seq_seqid.dptr, strlen(data));
          }
          else
          {
-            fprintf(stderr,"W003: Can't find unique fragment. \
+            fprintf(stderr,"W00n: Can't find unique fragment. \
 Unable to store %s (length=%d)\n", gdbm_seq_seqid.dptr, strlen(data));
          }
       }
@@ -820,7 +817,7 @@ char *ThisSequenceRedundant(char *data, int fragSize,
       /* Allocate memory for fragment storage                           */
       if((sFragment = (char *)malloc((fragSize+1) * sizeof(char)))==NULL)
       {
-         fprintf(stderr,"E003: No memory for fragment storage\n");
+         fprintf(stderr,"E00n: No memory for fragment storage\n");
          exit(1);
       }
    }
@@ -956,7 +953,7 @@ BOOL NonRedundantise(char *file, BOOL loadOnly, int fragSize,
 
    if(gVerbose > 1)
    {
-      fprintf(stderr,"\n\nTRACE: NON-REDUNDANTISING %s\n\n", 
+      fprintf(stderr,"\n\nNON-REDUNDANTISING %s\n\n", 
               ((file)?file:"STDIN"));
    }
    
@@ -965,7 +962,7 @@ BOOL NonRedundantise(char *file, BOOL loadOnly, int fragSize,
    {
       if((in=fopen(file, "r"))==NULL)
       {
-         fprintf(stderr,"E004: Can't read %s\n", file);
+         fprintf(stderr,"E00n: Can't read %s\n", file);
          return(FALSE);
       }
    }
@@ -996,7 +993,7 @@ BOOL NonRedundantise(char *file, BOOL loadOnly, int fragSize,
    }
    else
    {
-      fprintf(stderr,"E005: Failed to read sequences from %s\n",
+      fprintf(stderr,"E00n: Failed to read sequences from %s\n",
               file);
       retval = FALSE;
    }
@@ -1032,7 +1029,7 @@ BOOL DropRedundancies(int fragSize)
    
    if(gVerbose > 1)
    {
-      fprintf(stderr,"TRACE: Dropping Redundancies...\n");
+      fprintf(stderr,"Dropping Redundancies...\n");
    }
    
    /* Loop through the keys of the temporary sequence hash              */
@@ -1097,7 +1094,7 @@ void doDropRedundancy(char *seqid, char *sequence, int fragSize)
       /* Allocate memory for fragment storage                           */
       if((sFragment = (char *)malloc((fragSize+1) * sizeof(char)))==NULL)
       {
-         fprintf(stderr,"E003: No memory for fragment storage\n");
+         fprintf(stderr,"E00n: No memory for fragment storage\n");
          exit(1);
       }
    }
@@ -1209,7 +1206,7 @@ BOOL MergeSequenceHashes(char *mainhash, char *temphash)
    
    if(gVerbose > 1)
    {
-      fprintf(stderr,"TRACE: Merging Sequence Hashes...\n");
+      fprintf(stderr,"Merging Sequence Hashes...\n");
    }
    
    /* Copy everything across from the temp seq hash to the main one     */
@@ -1330,7 +1327,7 @@ void WriteResults(FILE *out)
    
    if(gVerbose > 1)
    {
-      fprintf(stderr,"TRACE: Writing Results...\n");
+      fprintf(stderr,"Writing Results...\n");
    }
    
    gdbm_seq_seqid = gdbm_firstkey(gDBF_seqdata);
@@ -1410,20 +1407,6 @@ int CompareSequences(char *seq1, char *id1, char *seq2, char *id2)
    
    
    return(0);
-}
-
-
-/************************************************************************/
-/*>void CleanupDie(int signum)
-   ---------------------------
-   Runs the clean-up routine and exits
-
-   25.07.00 Original   By: ACRM
-*/
-void CleanupDie(int signum)
-{
-   CleanUp();
-   exit(1);
 }
 
 
