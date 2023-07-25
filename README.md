@@ -1,13 +1,14 @@
-
                                nr V1.2
+                               =======
 
                               --ooOoo--
+                              =========
 
         (c) 2000 University of Reading, Dr. Andrew C.R. Martin
+        ======================================================
 
 
-
-nr is a program to create a non-redundant sequence database from one
+`nr` is a program to create a non-redundant sequence database from one
 or more FASTA input file(s). The program uses an algorithm designed
 for maximal speed with minimal memory usage. 
 
@@ -21,6 +22,7 @@ chosen.
 Optionally the first file may already be non-redundant in which case
 new non-redundant sequences may be added to it.
 
+```
 Usage: nr [-v] [-o out.faa] [-n] [-f fragsize] [-r size] [-d tmpdir]
           file1.faa [file2.faa ...]
           -v  Verbose mode. More information supplied depending on
@@ -38,22 +40,26 @@ Usage: nr [-v] [-o out.faa] [-n] [-f fragsize] [-r size] [-d tmpdir]
               The default may also be overridden using the NR_TMPDIR 
               environment variable. The command line switch takes
               precedence over the environment variable.
+```
 
-findequiv.perl
-==============
+findequiv.pl
+------------
+
 This is a small Perl script to analyse the log file produced by nr
 (when run with -v) which generates a list of the top-level parents
 (i.e. those which appear in the final output from nr) and all their
 descendents.
 
+```
 Usage:         findequiv.perl nr.log >parents.lis
         --or--
                cat nr*.log | findequiv.perl >parents.lis
-
+```
 
 Warning and Error Messages
-==========================
+--------------------------
 
+```
 W001: Duplicate ID
       The identifier is already used and stored in the sequence hashes
 
@@ -85,23 +91,23 @@ E004: Can't read file
 
 E005: Failed to read sequences from file
       Error occured while reading the sequence data
-
+```
 
 
 Algorithm
-=========
+---------
+
 The algorithm used is as follows:
 
-1. Read the data
-----------------
+### 1. Read the data
 
 Read the sequence file creating a hash which gives indexes into the
 file keyed by identifier. This allows us quickly to obtain the
 sequence for a given identifier. This is loaded as a "temporary"
 working hash which is later merged with the main sequence hash.
 
-2. Hash the sequences 
----------------------
+### 2. Hash the sequences 
+
 The N-terminal fragment (default 15aa) from each sequence is stored in
 a hash pointing to its identifier and vice versa, the identifier
 pointing to the fragment. If the fragment is already stored, then we
@@ -111,6 +117,7 @@ found a warning is given and the sequence is rejected. In most cases
 this will be an indication of many similar redundant sequences. It is
 however possible that in rather bizarre cases a unique sequence could
 be lost. For example (assuming a 3res fragment) we have stored:
+```
        ABCXXXXXXX : ABC
        BCDXXXXXXX : BCD
        CDEXXXXXXX : CDE
@@ -119,15 +126,18 @@ be lost. For example (assuming a 3res fragment) we have stored:
        PQRXXXXXXX : PQR
        QRTXXXXXXX : QRS
        RSTXXXXXXX : RST
+```
 and wish to store:
+```
        ABCDEPQRST
+```
 All the fragment keys have appeared before.
 
 With a reasonably large fragment size this is very unlikely and
 increasing the fragment size at run time should solve the problem. 
 
-3. Drop Redundancies
---------------------
+### 3. Drop Redundancies
+
 This stage is skipped if this is the first file and has been flagged
 as already non-redundant
 
@@ -143,25 +153,26 @@ since this would disturb the loop through the keys. Instead we simply
 mark it as deleted and at the end of this stage, all marked sequences
 are physically removed from all the hashes.
 
-4. Merge the hashes
--------------------
+### 4. Merge the hashes
+
 The temporary working sequence hash is then merged into the main
 sequence hash and the temporary hash is deleted.
 
-5. Repeat
----------
+### 5. Repeat
+
 Stages 1-4 are repeated for any other sequence files specified on the
 command line
 
-6. Write results
-----------------
+### 6. Write results
+
 All remaining sequences are written to the output file.
 
 
 
 Pseudocode
-==========
+----------
 
+```
 // Pass 1: Create a hash of fragments from the sequences
 foreach sequence (ID)
 {
@@ -194,31 +205,31 @@ foreach hashedsequence (ID)
 {
    WriteData(ID);
 }
-
+```
 
 Notes
-=====
+-----
 
 Performance improvements might be gained from
 
-1. Replacing the hashing routines
+### 1. Replacing the hashing routines
 
 Hashing is currently done for ease using GDBM hashes. Hand-coded
 hashing is likely to give better performance and would remove the need
 for disk storage of the hashes. Example code for hashing is at:
-   http://www.niksula.cs.hut.fi/~tik76122/dsaa_c2e/files.html
+http://www.niksula.cs.hut.fi/~tik76122/dsaa_c2e/files.html
 It would also be possible to implement non-unique keys such that
 sequences for which no unique fragment can be found could be
 processed. 
 
-2. Delete-as-we-go
+### 2. Delete-as-we-go
 
 The list of sequence IDs for processing could be generated as a linked
 list rather than stepping through all the hash keys. The routine to
 drop sequences from the hash could then do so properly rather than
 making a list of sequences to drop.
 
-3. Sequence storage
+### 3. Sequence storage
 
 The actual sequence data could be stored in memory in the sequence
 hashes rather than storing a pointer into the file. This would speed
@@ -228,10 +239,10 @@ time is spent doing disk I/O. However this would be at the expense of
 much increased memory usage. The current implementation required only
 ~15M RAM to process ~330k sequences.
 
-4. Partial mismatches
+### 4. Partial mismatches
 
 With the current method it is not possible to reject partial
-mismatches.  While the CompareSequences() routine could be modified to
+mismatches.  While the `CompareSequences()` routine could be modified to
 allow a partial mismatch (say 2 differences allowed in the sequences),
 this depends on the fragment which is hashed being identical between
 the two sequences (in order that they ever get compared).
