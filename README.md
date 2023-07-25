@@ -1,11 +1,8 @@
-                               nr V1.2
-                               =======
+nr V1.2
+=======
 
-                              --ooOoo--
-                              =========
-
-        (c) 2000 University of Reading, Dr. Andrew C.R. Martin
-        ======================================================
+(c) 2000 University of Reading, Dr. Andrew C.R. Martin
+------------------------------------------------------
 
 
 `nr` is a program to create a non-redundant sequence database from one
