@@ -42,15 +42,15 @@ Usage: nr [-v] [-o out.faa] [-n] [-f fragsize] [-r size] [-d tmpdir]
 findequiv.pl
 ------------
 
-This is a small Perl script to analyse the log file produced by nr
-(when run with -v) which generates a list of the top-level parents
-(i.e. those which appear in the final output from nr) and all their
+This is a small Perl script to analyse the log file produced by `nr`
+(when run with `-v`) which generates a list of the top-level parents
+(i.e. those which appear in the final output from `nr`) and all their
 descendents.
 
 ```
-Usage:         findequiv.perl nr.log >parents.lis
+Usage:         findequiv.pl nr.log >parents.lis
         --or--
-               cat nr*.log | findequiv.perl >parents.lis
+               cat nr*.log | findequiv.pl >parents.lis
 ```
 
 Warning and Error Messages
